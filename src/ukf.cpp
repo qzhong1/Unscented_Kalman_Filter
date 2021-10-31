@@ -55,6 +55,17 @@ UKF::UKF() {
    * TODO: Complete the initialization. See ukf.h for other member properties.
    * Hint: one or more values initialized above might be wildly off...
    */
+  // State dimension
+  n_x_ = 5;
+
+  // Augmented state dimension
+  n_aug_ = 7;
+
+  // Sigma point spreading parameter
+  lambda_ = 3 - n_x_;
+
+  Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
+  weights_ = VectorXd(2 * n_aug_ + 1);
 }
 
 UKF::~UKF() {}
@@ -66,7 +77,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
    */
   
 
-  // first call
+  // first call initialise state x_ and covariance P_
   if (!is_initialized_) 
   {
     if (meas_package.sensor_type_ == MeasurementPackage::LASER && use_laser_)
@@ -92,10 +103,10 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       UpdateRadar(meas_package);
     else if (meas_package.sensor_type_ == MeasurementPackage::LASER && use_laser_)
       UpdateLidar(meas_package);
-  }
 
-  std::cout << "timestamp: " << time_us_ << std::endl; 
-  std::cout << "state x_: " << x_.transpose() << std::endl;
+    std::cout << "timestamp: " << time_us_ << std::endl; 
+    std::cout << "state x_: " << x_.transpose() << std::endl;
+  }
 }
 
 void UKF::Prediction(double delta_t) {
@@ -203,9 +214,8 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
       S += weights_(i) * (Zsig.col(i) - z_pred) * (Zsig.col(i) - z_pred).transpose();
   }
   MatrixXd R = MatrixXd(n_z,n_z);
-  R(0, 0) = std_radr_*std_radr_;
-  R(1, 1) = std_radphi_*std_radphi_;
-  R(2, 2) = std_radrd_*std_radrd_;
+  R(0, 0) = std_laspx_*std_laspx_;
+  R(1, 1) = std_laspy_*std_laspy_;
   S += R;
 
   // radar incoming measurement

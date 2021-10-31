@@ -58,7 +58,7 @@ class UKF {
   Eigen::MatrixXd P_;
 
   // predicted sigma points matrix
-  Eigen::MatrixXd Xsig_pred_ = Eigen::MatrixXd(n_x_, 2 * n_aug_ + 1);
+  Eigen::MatrixXd Xsig_pred_;
 
   // time when the state is true, in us
   long long time_us_;
@@ -86,16 +86,16 @@ class UKF {
   double std_radrd_ ;
 
   // Weights of sigma points
-  Eigen::VectorXd weights_ = Eigen::VectorXd(2 * n_aug_ + 1);
+  Eigen::VectorXd weights_;
 
   // State dimension
-  int n_x_ = 5;
+  int n_x_;
 
   // Augmented state dimension
-  int n_aug_ = 7;
+  int n_aug_;
 
   // Sigma point spreading parameter
-  double lambda_ = 3 - n_x_;
+  double lambda_;
 };
 
 #endif  // UKF_H
