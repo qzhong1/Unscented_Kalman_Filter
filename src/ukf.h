@@ -43,7 +43,7 @@ class UKF {
 
 
   // initially set to false, set to true in first call of ProcessMeasurement
-  bool is_initialized_;
+  bool is_initialized_ = false;
 
   // if this is false, laser measurements will be ignored (except for init)
   bool use_laser_;
@@ -58,10 +58,11 @@ class UKF {
   Eigen::MatrixXd P_;
 
   // predicted sigma points matrix
-  Eigen::MatrixXd Xsig_pred_;
+  Eigen::MatrixXd Xsig_pred_ = Eigen::MatrixXd(n_x_, 2 * n_aug_ + 1);
 
   // time when the state is true, in us
   long long time_us_;
+  long long prev_time_us_;
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
   double std_a_;
@@ -85,16 +86,16 @@ class UKF {
   double std_radrd_ ;
 
   // Weights of sigma points
-  Eigen::VectorXd weights_;
+  Eigen::VectorXd weights_ = Eigen::VectorXd(2 * n_aug_ + 1);
 
   // State dimension
-  int n_x_;
+  int n_x_ = 5;
 
   // Augmented state dimension
-  int n_aug_;
+  int n_aug_ = 7;
 
   // Sigma point spreading parameter
-  double lambda_;
+  double lambda_ = 3 - n_x_;
 };
 
 #endif  // UKF_H
