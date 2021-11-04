@@ -145,7 +145,7 @@ void UKF::Prediction(double delta_t) {
   
   // predict sigma points
   for (int i=0; i<2 * n_aug_ + 1; i++){
-    if(Xsig_aug(4, i) != 0){
+    if(fabs(Xsig_aug(4, i)) > 0.001){
       Xsig_pred_(0,i) = Xsig_aug(0, i) + Xsig_aug(2, i)/Xsig_aug(4, i)*(sin(Xsig_aug(3, i)+Xsig_aug(4, i)*delta_t) - sin(Xsig_aug(3, i))) + 0.5*delta_t*delta_t*cos(Xsig_aug(3, i))*Xsig_aug(5, i);
       Xsig_pred_(1,i) = Xsig_aug(1, i) + Xsig_aug(2, i)/Xsig_aug(4, i)*(-cos(Xsig_aug(3, i)+Xsig_aug(4, i)*delta_t) + cos(Xsig_aug(3, i))) + 0.5*delta_t*delta_t*sin(Xsig_aug(3, i))*Xsig_aug(5, i);
       Xsig_pred_(2,i) = Xsig_aug(2, i) + delta_t*Xsig_aug(5,i);
@@ -293,7 +293,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   // transform sigma points into measurement space
   for (int i=0; i<2 * n_aug_ + 1; i++){
     Zsig(0, i) = sqrt(pow(Xsig_pred_(0, i), 2) + pow(Xsig_pred_(1, i), 2));
-    Zsig(1, i) = atan(Xsig_pred_(1, i)/Xsig_pred_(0, i));
+    Zsig(1, i) = atan2(Xsig_pred_(1, i), Xsig_pred_(0, i));
     Zsig(2, i) = (Xsig_pred_(0, i)*cos(Xsig_pred_(3, i))*Xsig_pred_(2, i) + Xsig_pred_(1, i)*sin(Xsig_pred_(3, i))*Xsig_pred_(2, i))/Zsig(0, i);
   }
 
@@ -354,7 +354,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   // angle normalization
   while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
   while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
-  
+
   // update state mean and covariance matrix
   x_ = x_ + K*(z - z_pred);
   P_ = P_ - K*S*K.transpose();
