@@ -61,8 +61,8 @@ class UKF {
   Eigen::MatrixXd Xsig_pred_;
 
   // time when the state is true, in us
-  long long time_us_;
-  long long prev_time_us_;
+  long long time_us_ = 0.0;
+  long long prev_time_us_ = 0.0;
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
   double std_a_;

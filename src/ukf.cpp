@@ -22,10 +22,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 3;
+  std_a_ = 1.0;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 2.5;
+  std_yawdd_ = 0.5;
   
   /**
    * DO NOT MODIFY measurement noise values below.
@@ -62,7 +62,7 @@ UKF::UKF() {
   n_aug_ = 7;
 
   // Sigma point spreading parameter
-  lambda_ = 3 - n_x_;
+  lambda_ = 3 - n_aug_;
 
   Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
   weights_ = VectorXd(2 * n_aug_ + 1);
@@ -82,7 +82,6 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
    * measurements.
    */
 
-  // first call initialise state x_ and covariance P_
   if (!is_initialized_) 
   {
     if (meas_package.sensor_type_ == MeasurementPackage::LASER && use_laser_)
@@ -128,6 +127,7 @@ void UKF::Prediction(double delta_t) {
   MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
 
   // create augmented covariance matrix
+  P_aug.fill(0.0);
   MatrixXd Q = MatrixXd(n_aug_ - n_x_, n_aug_ - n_x_);
   Q << std_a_*std_a_, 0,
       0, std_yawdd_*std_yawdd_;
