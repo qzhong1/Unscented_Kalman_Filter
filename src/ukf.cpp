@@ -65,13 +65,10 @@ UKF::UKF() {
   lambda_ = 3 - n_aug_;
 
   Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
-  weights_ = VectorXd(2 * n_aug_ + 1);
 
-  P_ << 1, 0, 0, 0, 0,
-      0, 1, 0, 0, 0,
-      0, 0, 1, 0, 0,
-      0, 0, 0, 0.0225, 0,
-      0, 0, 0, 0, 0.0225;
+  weights_ = VectorXd(2 * n_aug_ + 1);
+  weights_(0) = lambda_  / (lambda_ + n_aug_);
+  weights_.tail(2*n_aug_).fill(0.5 / (n_aug_ + lambda_)); 
 }
 
 UKF::~UKF() {}
@@ -90,6 +87,13 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     else if (meas_package.sensor_type_ == MeasurementPackage::RADAR && use_radar_)
       x_ << meas_package.raw_measurements_(0)*cos(meas_package.raw_measurements_(1)), meas_package.raw_measurements_(0)*sin(meas_package.raw_measurements_(1)), 0.3, 0, 0;  // random numbers for object velocity, yaw, yaw rate
 
+    P_ << 1, 0, 0, 0, 0,
+      0, 1, 0, 0, 0,
+      0, 0, 1, 0, 0,
+      0, 0, 0, std_laspx_*std_laspx_, 0,
+      0, 0, 0, 0, std_laspy_*std_laspy_;
+
+    prev_time_us_ = meas_package.timestamp_;
     is_initialized_ = true;
   } 
   else // calls after 1st call
@@ -160,18 +164,9 @@ void UKF::Prediction(double delta_t) {
     }
   }
 
-  // set weights
-  weights_(0) = lambda_/(lambda_+n_aug_);
-  for (int i=1; i<2*n_aug_+1; i++){
-    weights_(i) = 1/(2*(lambda_+n_aug_));
-  }
-
   // predict state mean
   x_.fill(0);
-  for (int i=0; i<2*n_aug_+1; i++){
-    x_ += weights_(i)*Xsig_pred_.col(i);
-  }
-
+  x_ = Xsig_pred_ * weights_;
 
   // predict state covariance matrix
   P_.fill(0);  
@@ -226,6 +221,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   }
 
   MatrixXd R = MatrixXd(n_z,n_z);
+  R.fill(0.0);
   R(0, 0) = std_laspx_*std_laspx_;
   R(1, 1) = std_laspy_*std_laspy_;
   S += R;
@@ -314,6 +310,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   }
 
   MatrixXd R = MatrixXd(n_z,n_z);
+  R.fill(0.0);
   R(0, 0) = std_radr_*std_radr_;
   R(1, 1) = std_radphi_*std_radphi_;
   R(2, 2) = std_radrd_*std_radrd_;
